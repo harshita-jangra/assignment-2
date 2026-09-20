@@ -1,0 +1,287 @@
+<%- include('../partials/head') %>
+
+<div class="app-container">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/header', { 
+      pageHeadline: 'Lab Operations Control',
+      pageSubheadline: 'Authorize issue requisitions, record physical returns, and track active hardware loans.'
+    }) %>
+    <%- include('../partials/toasts') %>
+
+    <main class="content-body">
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Pending Approval</span>
+            <div class="stat-icon" style="background: rgba(100, 21, 42, 0.4);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-value"><%= stats.pendingCount %></div>
+          <div class="stat-subtext">Requests awaiting review</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Approved (Ready)</span>
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-value"><%= stats.approvedCount %></div>
+          <div class="stat-subtext">Ready for physical handover</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Currently Issued</span>
+            <div class="stat-icon" style="background: rgba(74, 14, 28, 0.6);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-value"><%= stats.issuedCount %></div>
+          <div class="stat-subtext">Hardware on active loan</div>
+        </div>
+
+        <div class="stat-card" style="<%= stats.overdueCount > 0 ? 'border-color: #EF4444;' : '' %>">
+          <div class="stat-header">
+            <span class="stat-label" style="<%= stats.overdueCount > 0 ? 'color: #EF4444;' : '' %>">Overdue Items</span>
+            <div class="stat-icon" style="background: rgba(180, 20, 30, 0.3);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="<%= stats.overdueCount > 0 ? '#EF4444' : 'currentColor' %>" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-value" style="<%= stats.overdueCount > 0 ? 'color: #EF4444;' : '' %>"><%= stats.overdueCount %></div>
+          <div class="stat-subtext">Requires student follow-up</div>
+        </div>
+      </div>
+
+      <!-- Pending Requests Requiring Immediate Action -->
+      <div class="glass-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Pending Equipment Requests Awaiting Action
+          </div>
+          <a href="/lab/requests" class="btn btn-secondary btn-sm">Manage All Requests</a>
+        </div>
+
+        <div class="table-responsive">
+          <% if (pendingRequests && pendingRequests.length > 0) { %>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Requester</th>
+                  <th>Equipment / Asset Tag</th>
+                  <th>Qty</th>
+                  <th>Stock Check</th>
+                  <th>Expected Return</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% pendingRequests.forEach(reqItem => { %>
+                  <tr>
+                    <td>
+                      <strong><%= reqItem.requester ? reqItem.requester.name : 'Unknown' %></strong>
+                      <div style="font-size: 0.75rem; color: var(--muted-text);"><%= reqItem.requester ? reqItem.requester.email : '' %></div>
+                    </td>
+                    <td>
+                      <% if (reqItem.asset) { %>
+                        <strong><%= reqItem.asset.name %></strong>
+                        <div class="asset-tag"><%= reqItem.asset.assetTag %> · <%= reqItem.asset.location %></div>
+                      <% } else { %>
+                        <span>Archived Asset</span>
+                      <% } %>
+                    </td>
+                    <td><span class="badge badge-category"><%= reqItem.quantity %> Units</span></td>
+                    <td>
+                      <% if (reqItem.asset) { %>
+                        <% if (reqItem.asset.availableQuantity >= reqItem.quantity) { %>
+                          <span style="color: #A3E635; font-size: 0.8rem;">✓ <%= reqItem.asset.availableQuantity %> Available</span>
+                        <% } else { %>
+                          <span style="color: #F87171; font-size: 0.8rem;">✕ Shortage: <%= reqItem.asset.availableQuantity %> left</span>
+                        <% } %>
+                      <% } %>
+                    </td>
+                    <td><%= new Date(reqItem.expectedReturnDate).toLocaleDateString() %></td>
+                    <td>
+                      <div style="display: flex; gap: 0.4rem;">
+                        <form action="/lab/approve" method="POST" style="display: inline;">
+                          <input type="hidden" name="requestId" value="<%= reqItem._id %>">
+                          <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="setupRejectModal('<%= reqItem._id %>', '<%= reqItem.asset ? reqItem.asset.name : 'Asset' %>')">
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <div class="empty-state" style="padding: 2.5rem 1rem;">
+              <h3>No Pending Requisitions</h3>
+              <p>All student and staff equipment requests have been processed.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Overdue Hardware Panel -->
+      <% if (overdueRequests && overdueRequests.length > 0) { %>
+        <div class="glass-panel" style="border-color: rgba(239, 68, 68, 0.4);">
+          <div class="panel-header" style="background: rgba(42, 7, 16, 0.8);">
+            <div class="panel-title" style="color: #FCA5A5;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              Critical: Overdue Equipment Loans
+            </div>
+            <a href="/lab/overdue" class="btn btn-danger btn-sm">View All Overdue</a>
+          </div>
+
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Requester</th>
+                  <th>Equipment</th>
+                  <th>Qty</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% overdueRequests.forEach(reqItem => { %>
+                  <tr>
+                    <td>
+                      <strong><%= reqItem.requester ? reqItem.requester.name : 'Unknown' %></strong>
+                      <div style="font-size: 0.75rem; color: var(--muted-text);"><%= reqItem.requester ? reqItem.requester.email : '' %></div>
+                    </td>
+                    <td>
+                      <strong><%= reqItem.asset ? reqItem.asset.name : 'N/A' %></strong>
+                      <div class="asset-tag"><%= reqItem.asset ? reqItem.asset.assetTag : '' %></div>
+                    </td>
+                    <td><%= reqItem.quantity %></td>
+                    <td style="color: #F87171; font-weight: 700;">
+                      <%= new Date(reqItem.expectedReturnDate).toLocaleDateString() %>
+                    </td>
+                    <td><span class="badge badge-overdue">OVERDUE</span></td>
+                    <td>
+                      <button 
+                        type="button" 
+                        class="btn btn-primary btn-sm"
+                        onclick="setupReturnModal('<%= reqItem._id %>', '<%= reqItem.asset ? reqItem.asset.name : 'Asset' %>', '<%= reqItem.requester ? reqItem.requester.name : 'Requester' %>', '<%= reqItem.quantity %>')"
+                      >
+                        Record Return
+                      </button>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } %>
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Record Return -->
+<div class="modal-overlay" id="returnModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3>Record Equipment Return</h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('returnModal')">&times;</button>
+    </div>
+    <form action="/lab/return" method="POST">
+      <div class="modal-body">
+        <input type="hidden" id="returnRequestId" name="requestId" value="">
+
+        <div style="background: rgba(74, 14, 28, 0.3); border: 1px solid var(--border-burgundy); border-radius: 8px; padding: 0.85rem; margin-bottom: 1.25rem;">
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--champagne); display: block;">Item Returning</span>
+          <div id="returnItemSummary" style="font-weight: 600; color: var(--cream); font-size: 0.95rem; margin-top: 0.2rem;"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="returnCondition">Physical Condition upon Inspection</label>
+          <select id="returnCondition" name="returnCondition" class="form-control" required>
+            <option value="OK">OK — Perfect working condition (Restore stock)</option>
+            <option value="Damaged">Damaged — Defect / Needs maintenance (Isolate stock)</option>
+            <option value="Lost">Lost — Missing / Unrecoverable (Deduct from inventory)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="returnRemarks">Inspection Remarks / Observations</label>
+          <textarea 
+            id="returnRemarks" 
+            name="returnRemarks" 
+            class="form-control" 
+            placeholder="e.g., Cable intact, calibration verified, probe tips inspected..."
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('returnModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm">Confirm Return</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Reject Request Reason -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3>Reject Requisition Request</h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('rejectModal')">&times;</button>
+    </div>
+    <form action="/lab/reject" method="POST">
+      <div class="modal-body">
+        <input type="hidden" id="rejectRequestId" name="requestId" value="">
+        <p id="rejectItemSummary" style="color: var(--cream); margin-bottom: 1rem; font-size: 0.9rem;"></p>
+
+        <div class="form-group">
+          <label class="form-label" for="rejectionReason">Reason for Rejection</label>
+          <textarea 
+            id="rejectionReason" 
+            name="rejectionReason" 
+            class="form-control" 
+            placeholder="e.g., Reserved for scheduled lab exam, insufficient available stock..."
+            required
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('rejectModal')">Cancel</button>
+        <button type="submit" class="btn btn-danger btn-sm">Confirm Rejection</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

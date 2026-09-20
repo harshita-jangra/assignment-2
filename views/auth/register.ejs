@@ -1,0 +1,150 @@
+<%- include('../partials/head') %>
+<%- include('../partials/toasts') %>
+
+<div class="auth-wrapper">
+  <!-- Left Side: Velvet Burgundy Luxury Branding -->
+  <div class="auth-sidebar">
+    <div class="auth-sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-shield">LV</div>
+        <div class="logo-text">
+          <h2 style="font-size: 1.4rem;">LABVAULT</h2>
+          <p>Asset Management System</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-sidebar-body">
+      <div class="auth-title">Join LabVault</div>
+      <div class="auth-subtitle">Institutional Access Registration</div>
+      <p class="auth-desc">
+        Create an authorized laboratory profile to requisition hardware, monitor active research loans, 
+        or oversee equipment operations with institutional oversight.
+      </p>
+
+      <div class="auth-features">
+        <div class="auth-feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Instant requisitioning with real-time stock allocation
+        </div>
+        <div class="auth-feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Automated return reminders & condition audits
+        </div>
+        <div class="auth-feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Multi-role institutional governance
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-sidebar-footer">
+      &copy; 2024 LabVault Institutional Systems. All rights reserved.
+    </div>
+  </div>
+
+  <!-- Right Side: Registration Card -->
+  <div class="auth-main">
+    <div class="auth-card" style="max-width: 480px;">
+      <div class="auth-card-header">
+        <h2>Create Account</h2>
+        <p>Register as a student, researcher, or lab supervisor</p>
+      </div>
+
+      <form action="/auth/register" method="POST">
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            class="form-control" 
+            placeholder="e.g., Jane Doe" 
+            value="<%= typeof formData !== 'undefined' && formData.name ? formData.name : '' %>"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Institutional Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-control" 
+            placeholder="e.g., j.doe@university.edu" 
+            value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+            required
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="role">Role</label>
+            <select id="role" name="role" class="form-control" required>
+              <option value="requester" <%= typeof formData !== 'undefined' && formData.role === 'requester' ? 'selected' : '' %>>Student / Staff Requester</option>
+              <option value="labIncharge" <%= typeof formData !== 'undefined' && formData.role === 'labIncharge' ? 'selected' : '' %>>Lab In-charge / Supervisor</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="department">Department</label>
+            <input 
+              type="text" 
+              id="department" 
+              name="department" 
+              class="form-control" 
+              placeholder="e.g., Electronics & Comm." 
+              value="<%= typeof formData !== 'undefined' && formData.department ? formData.department : '' %>"
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="Min. 6 characters" 
+              minlength="6"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="confirmPassword">Confirm</label>
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              name="confirmPassword" 
+              class="form-control" 
+              placeholder="Re-enter password" 
+              minlength="6"
+              required
+            >
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.75rem; padding: 0.85rem;">
+          Complete Registration
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--muted-text);">
+        Already have an account? 
+        <a href="/auth/login" style="color: var(--champagne); font-weight: 600; margin-left: 0.25rem;">Sign In</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,147 @@
+<%- include('../partials/head') %>
+
+<div class="app-container">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/header', { 
+      pageHeadline: 'Asset & Hardware Inventory',
+      pageSubheadline: 'Master institutional catalog with real-time stock allocation and condition records.'
+    }) %>
+    <%- include('../partials/toasts') %>
+
+    <main class="content-body">
+      <!-- Search & Filters -->
+      <div class="glass-panel" style="margin-bottom: 2rem;">
+        <div class="panel-body" style="padding: 1.25rem 1.5rem;">
+          <form action="/admin/assets" method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+            <div style="flex: 1; min-width: 240px; display: flex; gap: 0.5rem;">
+              <input 
+                type="text" 
+                name="search" 
+                class="form-control" 
+                placeholder="Search by tag, name, or room..."
+                value="<%= searchQuery %>"
+              >
+              <button type="submit" class="btn btn-primary btn-sm">Search</button>
+              <% if (searchQuery || selectedCategory !== 'All' || selectedCondition !== 'All') { %>
+                <a href="/admin/assets" class="btn btn-secondary btn-sm">Reset</a>
+              <% } %>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <select name="category" class="form-control" onchange="this.form.submit()" style="width: auto;">
+                <option value="All" <%= selectedCategory === 'All' ? 'selected' : '' %>>All Categories</option>
+                <% categories.forEach(cat => { %>
+                  <option value="<%= cat %>" <%= selectedCategory === cat ? 'selected' : '' %>><%= cat %></option>
+                <% }) %>
+              </select>
+
+              <select name="condition" class="form-control" onchange="this.form.submit()" style="width: auto;">
+                <option value="All" <%= selectedCondition === 'All' ? 'selected' : '' %>>All Conditions</option>
+                <option value="Good" <%= selectedCondition === 'Good' ? 'selected' : '' %>>Good</option>
+                <option value="Fair" <%= selectedCondition === 'Fair' ? 'selected' : '' %>>Fair</option>
+                <option value="Damaged" <%= selectedCondition === 'Damaged' ? 'selected' : '' %>>Damaged</option>
+                <option value="Under Maintenance" <%= selectedCondition === 'Under Maintenance' ? 'selected' : '' %>>Under Maintenance</option>
+              </select>
+
+              <a href="/admin/assets/add" class="btn btn-champagne btn-sm">
+                + Add Asset
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="glass-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            </svg>
+            Registered Hardware & Equipment (<%= assets.length %>)
+          </div>
+          <a href="/admin/assets/add" class="btn btn-primary btn-sm">+ Register New Asset</a>
+        </div>
+
+        <div class="table-responsive">
+          <% if (assets && assets.length > 0) { %>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Asset Tag</th>
+                  <th>Name & Category</th>
+                  <th>Location</th>
+                  <th>Total</th>
+                  <th>Available</th>
+                  <th>Issued</th>
+                  <th>Condition</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% assets.forEach(asset => { %>
+                  <tr>
+                    <td><span class="asset-tag"><%= asset.assetTag %></span></td>
+                    <td>
+                      <div style="font-weight: 600;"><%= asset.name %></div>
+                      <span class="badge badge-category" style="margin-top: 0.2rem;"><%= asset.category %></span>
+                    </td>
+                    <td style="color: var(--muted-text);"><%= asset.location %></td>
+                    <td><strong style="color: var(--cream);"><%= asset.totalQuantity %></strong></td>
+                    <td>
+                      <span style="font-weight: 700; color: <%= asset.availableQuantity > 0 ? '#A3E635' : '#F87171' %>;">
+                        <%= asset.availableQuantity %>
+                      </span>
+                    </td>
+                    <td>
+                      <span style="color: var(--champagne); font-weight: 600;">
+                        <%= asset.issuedQuantity %>
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge <%= asset.condition === 'Good' ? 'badge-approved' : 'badge-damaged' %>">
+                        <%= asset.condition %>
+                      </span>
+                    </td>
+                    <td>
+                      <div style="display: flex; gap: 0.4rem;">
+                        <a href="/admin/assets/<%= asset._id %>/edit" class="btn btn-secondary btn-sm" title="Edit Asset">
+                          Edit
+                        </a>
+
+                        <% if (asset.issuedQuantity === 0) { %>
+                          <form action="/admin/assets/<%= asset._id %>/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete <%= asset.name %>? This action cannot be undone.');">
+                            <button type="submit" class="btn btn-danger btn-sm" title="Delete Asset">
+                              Delete
+                            </button>
+                          </form>
+                        <% } else { %>
+                          <button type="button" class="btn btn-secondary btn-sm" style="opacity: 0.4; cursor: not-allowed;" title="Cannot delete while <%= asset.issuedQuantity %> units are issued">
+                            Locked
+                          </button>
+                        <% } %>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <div class="empty-state">
+              <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              </svg>
+              <h3>No Assets Found</h3>
+              <p>No equipment matching your criteria was found in the inventory database.</p>
+              <a href="/admin/assets/add" class="btn btn-primary btn-sm">+ Add First Asset</a>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

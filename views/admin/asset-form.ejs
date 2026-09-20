@@ -1,0 +1,140 @@
+<%- include('../partials/head') %>
+
+<div class="app-container">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/header', { 
+      pageHeadline: isEditing ? `Edit ${asset.name}` : 'Register New Asset',
+      pageSubheadline: isEditing ? `Updating specifications for [${asset.assetTag}]` : 'Add hardware equipment or test instruments to the laboratory repository.'
+    }) %>
+    <%- include('../partials/toasts') %>
+
+    <main class="content-body">
+      <div style="margin-bottom: 1.5rem;">
+        <a href="/admin/assets" class="btn btn-secondary btn-sm">
+          &larr; Back to Asset Inventory
+        </a>
+      </div>
+
+      <div class="glass-panel" style="max-width: 800px; margin: 0 auto;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            </svg>
+            <%= isEditing ? 'Edit Asset Profile' : 'New Asset Registration Form' %>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <form action="<%= isEditing ? `/admin/assets/${asset._id}/edit` : '/admin/assets/add' %>" method="POST">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="assetTag">Asset Tag / Serial ID *</label>
+                <input 
+                  type="text" 
+                  id="assetTag" 
+                  name="assetTag" 
+                  class="form-control" 
+                  placeholder="e.g., LAB-OSC-001" 
+                  value="<%= asset.assetTag || '' %>"
+                  style="text-transform: uppercase;"
+                  required
+                >
+                <small style="color: var(--muted-text); font-size: 0.72rem;">Must be unique institutional identifier.</small>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="name">Asset Name *</label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  name="name" 
+                  class="form-control" 
+                  placeholder="e.g., Digital Storage Oscilloscope 100MHz" 
+                  value="<%= asset.name || '' %>"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="category">Equipment Category *</label>
+                <select id="category" name="category" class="form-control" required>
+                  <% categories.forEach(cat => { %>
+                    <option value="<%= cat %>" <%= asset.category === cat ? 'selected' : '' %>><%= cat %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="location">Laboratory Location / Room *</label>
+                <input 
+                  type="text" 
+                  id="location" 
+                  name="location" 
+                  class="form-control" 
+                  placeholder="e.g., Electronics Lab - Room 302" 
+                  value="<%= asset.location || '' %>"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="totalQuantity">Total Institutional Quantity *</label>
+                <input 
+                  type="number" 
+                  id="totalQuantity" 
+                  name="totalQuantity" 
+                  class="form-control" 
+                  min="<%= isEditing ? (asset.issuedQuantity || 0) : 1 %>" 
+                  value="<%= asset.totalQuantity !== undefined ? asset.totalQuantity : 5 %>"
+                  required
+                >
+                <% if (isEditing) { %>
+                  <small style="color: var(--champagne); font-size: 0.72rem;">
+                    Currently Issued: <%= asset.issuedQuantity || 0 %> units. Total cannot be lower than issued units.
+                  </small>
+                <% } %>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="condition">Physical Condition</label>
+                <select id="condition" name="condition" class="form-control" required>
+                  <option value="Good" <%= asset.condition === 'Good' ? 'selected' : '' %>>Good — Fully operational</option>
+                  <option value="Fair" <%= asset.condition === 'Fair' ? 'selected' : '' %>>Fair — Minor cosmetic wear</option>
+                  <option value="Damaged" <%= asset.condition === 'Damaged' ? 'selected' : '' %>>Damaged — Needs repair</option>
+                  <option value="Under Maintenance" <%= asset.condition === 'Under Maintenance' ? 'selected' : '' %>>Under Maintenance</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Technical Description & Specifications</label>
+              <textarea 
+                id="description" 
+                name="description" 
+                class="form-control" 
+                rows="3" 
+                placeholder="Key technical capabilities, bandwidth, calibration details, accessories..."
+              ><%= asset.description || '' %></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+              <a href="/admin/assets" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary">
+                <%= isEditing ? 'Save Changes' : 'Create Asset Record' %>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

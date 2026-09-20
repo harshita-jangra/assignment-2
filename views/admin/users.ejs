@@ -1,0 +1,71 @@
+<%- include('../partials/head') %>
+
+<div class="app-container">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/header', { 
+      pageHeadline: 'User Directory & Access Control',
+      pageSubheadline: 'Overview of all registered students, research scholars, lab staff, and administrators.'
+    }) %>
+    <%- include('../partials/toasts') %>
+
+    <main class="content-body">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Registered Institutional Users (<%= users.length %>)
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>User Details</th>
+                <th>Institutional Email</th>
+                <th>Assigned Role</th>
+                <th>Department</th>
+                <th>Registered Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% users.forEach(u => { %>
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                      <div class="user-avatar" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                        <%= u.name.charAt(0).toUpperCase() %>
+                      </div>
+                      <strong style="color: var(--cream);"><%= u.name %></strong>
+                    </div>
+                  </td>
+                  <td><span style="font-family: monospace; color: var(--champagne);"><%= u.email %></span></td>
+                  <td>
+                    <% if (u.role === 'admin') { %>
+                      <span class="badge badge-approved">Administrator</span>
+                    <% } else if (u.role === 'labIncharge') { %>
+                      <span class="badge badge-issued">Lab In-charge</span>
+                    <% } else { %>
+                      <span class="badge badge-category">Requester</span>
+                    <% } %>
+                  </td>
+                  <td style="color: var(--muted-text);"><%= u.department || 'General Lab' %></td>
+                  <td><%= new Date(u.createdAt).toLocaleDateString() %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

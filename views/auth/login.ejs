@@ -1,0 +1,122 @@
+<%- include('../partials/head') %>
+<%- include('../partials/toasts') %>
+
+<div class="auth-wrapper">
+  <!-- Left Side: Velvet Burgundy Luxury Branding -->
+  <div class="auth-sidebar">
+    <div class="auth-sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-shield">LV</div>
+        <div class="logo-text">
+          <h2 style="font-size: 1.4rem;">LABVAULT</h2>
+          <p>Asset Management System</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-sidebar-body">
+      <div class="auth-title">LABVAULT</div>
+      <div class="auth-subtitle">"Intelligent Asset & Equipment Management"</div>
+      <p class="auth-desc">
+        A unified platform engineered for academic laboratories and research centers. 
+        Track high-value hardware, monitor issues and returns, prevent inventory leakage, 
+        and oversee maintenance with precision.
+      </p>
+
+      <div class="auth-features">
+        <div class="auth-feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          Strict quantity invariants & zero-negative stock enforcement
+        </div>
+        <div class="auth-feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          Automated real-time overdue detection across all portals
+        </div>
+        <div class="auth-feature-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          Role-Based Access Control: Requester, Lab In-charge, and Admin
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-sidebar-footer">
+      &copy; 2024 LabVault Institutional Systems. All rights reserved.
+    </div>
+  </div>
+
+  <!-- Right Side: Dark Glassmorphic Sign-In Form -->
+  <div class="auth-main">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <h2>Sign In</h2>
+        <p>Access your laboratory workspace and assets</p>
+      </div>
+
+      <!-- Demo Credentials Quick Reference Box -->
+      <div class="demo-credentials-box">
+        <h4>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          Demo Credentials
+        </h4>
+        <div class="demo-list">
+          <div><span>Admin:</span> admin@example.com / Admin@123</div>
+          <div><span>Lab In-charge:</span> lab@example.com / Lab@123</div>
+          <div><span>Requester:</span> student@example.com / Student@123</div>
+        </div>
+      </div>
+
+      <form action="/auth/login" method="POST">
+        <div class="form-group">
+          <label class="form-label" for="email">Institutional Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-control" 
+            placeholder="e.g., student@example.com" 
+            value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+            required
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="form-control" 
+            placeholder="••••••••" 
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; padding: 0.85rem;">
+          Sign In to Portal
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.75rem; font-size: 0.85rem; color: var(--muted-text);">
+        Don't have an account? 
+        <a href="/auth/register" style="color: var(--champagne); font-weight: 600; margin-left: 0.25rem;">Create Account</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

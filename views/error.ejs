@@ -1,0 +1,20 @@
+<%- include('partials/head') %>
+
+<div class="auth-wrapper" style="align-items: center; justify-content: center; text-align: center;">
+  <div class="auth-card" style="max-width: 500px;">
+    <div style="font-family: var(--font-brand); font-size: 4rem; color: var(--champagne); line-height: 1; margin-bottom: 1rem;">
+      <%= typeof statusCode !== 'undefined' ? statusCode : '404' %>
+    </div>
+    <h2 style="font-size: 1.5rem; margin-bottom: 0.75rem; color: var(--cream);">
+      <%= typeof message !== 'undefined' ? message : 'Page Not Found' %>
+    </h2>
+    <p style="color: var(--muted-text); font-size: 0.92rem; margin-bottom: 2rem;">
+      The requested laboratory resource could not be found or access has been restricted.
+    </p>
+    <a href="/" class="btn btn-primary" style="padding: 0.75rem 1.75rem;">
+      Return to Dashboard
+    </a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

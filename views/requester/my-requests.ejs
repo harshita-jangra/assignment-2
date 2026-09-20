@@ -1,0 +1,117 @@
+<%- include('../partials/head') %>
+
+<div class="app-container">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/header', { 
+      pageHeadline: 'My Equipment Requests',
+      pageSubheadline: 'View status tracking, approval stages, and return records for all requisitions.'
+    }) %>
+    <%- include('../partials/toasts') %>
+
+    <main class="content-body">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            Requisition History & Status Tracking
+          </div>
+          <a href="/requester/browse" class="btn btn-primary btn-sm">+ New Request</a>
+        </div>
+
+        <div class="table-responsive">
+          <% if (requests && requests.length > 0) { %>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Request ID</th>
+                  <th>Equipment / Asset Tag</th>
+                  <th>Qty</th>
+                  <th>Purpose</th>
+                  <th>Request Date</th>
+                  <th>Expected Return</th>
+                  <th>Status</th>
+                  <th>Details & Remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% requests.forEach(r => { %>
+                  <% const isOverdue = r.status === 'Issued' && new Date(r.expectedReturnDate) < now; %>
+                  <tr>
+                    <td>
+                      <span style="font-family: monospace; font-size: 0.8rem; color: var(--champagne);">
+                        #<%= r._id.toString().slice(-6).toUpperCase() %>
+                      </span>
+                    </td>
+                    <td>
+                      <% if (r.asset) { %>
+                        <div style="font-weight: 600;"><%= r.asset.name %></div>
+                        <div class="asset-tag"><%= r.asset.assetTag %> · <%= r.asset.location %></div>
+                      <% } else { %>
+                        <span style="color: var(--muted-text);">Archived Asset</span>
+                      <% } %>
+                    </td>
+                    <td><span class="badge badge-category"><%= r.quantity %> Unit(s)</span></td>
+                    <td style="color: var(--muted-text); max-width: 220px;"><%= r.purpose %></td>
+                    <td><%= new Date(r.requestDate).toLocaleDateString() %></td>
+                    <td>
+                      <span style="<%= isOverdue ? 'color: #EF4444; font-weight: 700;' : '' %>">
+                        <%= new Date(r.expectedReturnDate).toLocaleDateString() %>
+                      </span>
+                    </td>
+                    <td>
+                      <% if (isOverdue) { %>
+                        <span class="badge badge-overdue">⚠ OVERDUE</span>
+                      <% } else if (r.status === 'Pending') { %>
+                        <span class="badge badge-pending">Pending Approval</span>
+                      <% } else if (r.status === 'Approved') { %>
+                        <span class="badge badge-approved">Approved (Collect)</span>
+                      <% } else if (r.status === 'Issued') { %>
+                        <span class="badge badge-issued">Issued (In Hand)</span>
+                      <% } else if (r.status === 'Returned') { %>
+                        <span class="badge badge-returned">Returned (<%= r.returnCondition %>)</span>
+                      <% } else if (r.status === 'Rejected') { %>
+                        <span class="badge badge-lost">Rejected</span>
+                      <% } %>
+                    </td>
+                    <td style="font-size: 0.8rem; color: var(--muted-text);">
+                      <% if (r.status === 'Pending') { %>
+                        <span>Awaiting Lab In-charge</span>
+                      <% } else if (r.status === 'Approved') { %>
+                        <span style="color: var(--champagne);">Approved by <%= r.approvedBy ? r.approvedBy.name : 'Staff' %>. Visit lab for handover.</span>
+                      <% } else if (r.status === 'Issued') { %>
+                        <span>Handed over by <%= r.issuedBy ? r.issuedBy.name : 'Staff' %></span>
+                      <% } else if (r.status === 'Returned') { %>
+                        <span>Returned on <%= new Date(r.returnedAt).toLocaleDateString() %>. Condition: <%= r.returnCondition %></span>
+                      <% } else if (r.status === 'Rejected') { %>
+                        <span style="color: #F87171;">Reason: <%= r.rejectionReason || 'Declined' %></span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <div class="empty-state">
+              <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <h3>No Requests Found</h3>
+              <p>You have not submitted any equipment requests yet. Browse the laboratory catalog to get started.</p>
+              <a href="/requester/browse" class="btn btn-primary btn-sm">Browse Equipment</a>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

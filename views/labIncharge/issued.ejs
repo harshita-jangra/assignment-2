@@ -1,0 +1,148 @@
+<%- include('../partials/head') %>
+
+<div class="app-container">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-wrapper">
+    <%- include('../partials/header', { 
+      pageHeadline: 'Currently Issued Equipment',
+      pageSubheadline: 'Real-time custody tracking and physical return verification.'
+    }) %>
+    <%- include('../partials/toasts') %>
+
+    <main class="content-body">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+            Active Hardware Loans (<%= issuedRequests.length %>)
+          </div>
+          <a href="/lab/overdue" class="btn btn-secondary btn-sm">Filter Overdue Only</a>
+        </div>
+
+        <div class="table-responsive">
+          <% if (issuedRequests && issuedRequests.length > 0) { %>
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Request ID</th>
+                  <th>Requester</th>
+                  <th>Equipment / Asset Tag</th>
+                  <th>Qty</th>
+                  <th>Issued Date</th>
+                  <th>Expected Return</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% issuedRequests.forEach(reqItem => { %>
+                  <% const isOverdue = new Date(reqItem.expectedReturnDate) < now; %>
+                  <tr>
+                    <td>
+                      <span style="font-family: monospace; font-size: 0.8rem; color: var(--champagne);">
+                        #<%= reqItem._id.toString().slice(-6).toUpperCase() %>
+                      </span>
+                    </td>
+                    <td>
+                      <strong><%= reqItem.requester ? reqItem.requester.name : 'Unknown' %></strong>
+                      <div style="font-size: 0.75rem; color: var(--muted-text);"><%= reqItem.requester ? reqItem.requester.email : '' %></div>
+                    </td>
+                    <td>
+                      <% if (reqItem.asset) { %>
+                        <strong><%= reqItem.asset.name %></strong>
+                        <div class="asset-tag"><%= reqItem.asset.assetTag %> · <%= reqItem.asset.location %></div>
+                      <% } else { %>
+                        <span>Archived Asset</span>
+                      <% } %>
+                    </td>
+                    <td><span class="badge badge-category"><%= reqItem.quantity %> Units</span></td>
+                    <td><%= reqItem.issuedAt ? new Date(reqItem.issuedAt).toLocaleDateString() : 'N/A' %></td>
+                    <td>
+                      <span style="<%= isOverdue ? 'color: #EF4444; font-weight: 700;' : '' %>">
+                        <%= new Date(reqItem.expectedReturnDate).toLocaleDateString() %>
+                      </span>
+                    </td>
+                    <td>
+                      <% if (isOverdue) { %>
+                        <span class="badge badge-overdue">⚠ OVERDUE</span>
+                      <% } else { %>
+                        <span class="badge badge-issued">ACTIVE LOAN</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <button 
+                        type="button" 
+                        class="btn btn-primary btn-sm"
+                        onclick="setupReturnModal('<%= reqItem._id %>', '<%= reqItem.asset ? reqItem.asset.name : 'Asset' %>', '<%= reqItem.requester ? reqItem.requester.name : 'Requester' %>', '<%= reqItem.quantity %>')"
+                      >
+                        Record Return
+                      </button>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <div class="empty-state">
+              <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+              <h3>No Equipment Currently Issued</h3>
+              <p>All institutional hardware and laboratory assets are safely stored in stock.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Record Return with Condition -->
+<div class="modal-overlay" id="returnModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3>Record Equipment Return</h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('returnModal')">&times;</button>
+    </div>
+    <form action="/lab/return" method="POST">
+      <div class="modal-body">
+        <input type="hidden" id="returnRequestId" name="requestId" value="">
+
+        <div style="background: rgba(74, 14, 28, 0.3); border: 1px solid var(--border-burgundy); border-radius: 8px; padding: 0.85rem; margin-bottom: 1.25rem;">
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--champagne); display: block;">Item Returning</span>
+          <div id="returnItemSummary" style="font-weight: 600; color: var(--cream); font-size: 0.95rem; margin-top: 0.2rem;"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="returnCondition">Inspected Condition</label>
+          <select id="returnCondition" name="returnCondition" class="form-control" required>
+            <option value="OK">OK — Restores units directly back to available stock</option>
+            <option value="Damaged">Damaged — Isolates units and creates maintenance ticket</option>
+            <option value="Lost">Lost — Deducts units from institutional inventory</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="returnRemarks">Inspection Remarks</label>
+          <textarea 
+            id="returnRemarks" 
+            name="returnRemarks" 
+            class="form-control" 
+            placeholder="e.g., Cleaned, tested with oscilloscope, all probes present..."
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('returnModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm">Complete Return</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
